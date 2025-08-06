@@ -12,8 +12,7 @@ export function Chatbot({ chatOpen, setChatOpen }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Welcome to alt.f. Ask me anything about our workspaces.  
-I'm in beta, so forgive me if I fumble a little.`,
+      content: `Welcome to alt.f. Ask me anything about our workspaces.   I'm in beta, so forgive me if I fumble a little.`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -27,7 +26,6 @@ I'm in beta, so forgive me if I fumble a little.`,
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
   const isAndroid = /Android/.test(navigator.userAgent);
 
-  // Add platform-specific class
   useEffect(() => {
     if (chatOpen && chatWrapperRef.current) {
       if (isIOS) chatWrapperRef.current.classList.add("ios");
@@ -35,41 +33,22 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
   }, [chatOpen]);
 
-  // Lock initial height and keyboard handling
   useEffect(() => {
     const setViewportHeight = () => {
       const initialHeight = window.innerHeight;
-      document.documentElement.style.setProperty(
-        "--chat-height",
-        `${initialHeight}px`
-      );
-      document.documentElement.style.setProperty(
-        "--vh",
-        `${initialHeight * 0.01}px`
-      );
+      document.documentElement.style.setProperty("--chat-height", `${initialHeight}px`);
+      document.documentElement.style.setProperty("--vh", `${initialHeight * 0.01}px`);
     };
 
-    setViewportHeight(); // Call it initially
+    setViewportHeight();
 
     const handleViewportResize = () => {
-      const keyboardHeight =
-        window.innerHeight -
-        (window.visualViewport?.height || window.innerHeight);
-
-      document.documentElement.style.setProperty(
-        "--keyboard-height",
-        `${Math.max(keyboardHeight, 0)}px`
-      );
-      document.documentElement.style.setProperty(
-        "--keyboard-open",
-        keyboardHeight > 150 ? "1" : "0"
-      );
-
-      // Update the chat height on resize to account for dynamic address bars
+      const keyboardHeight = window.innerHeight - (window.visualViewport?.height || window.innerHeight);
+      document.documentElement.style.setProperty("--keyboard-height", `${Math.max(keyboardHeight, 0)}px`);
+      document.documentElement.style.setProperty("--keyboard-open", keyboardHeight > 150 ? "1" : "0");
       setViewportHeight();
     };
 
-    // Use a single listener for both resize and visualViewport resize
     window.addEventListener("resize", handleViewportResize);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
@@ -78,15 +57,11 @@ I'm in beta, so forgive me if I fumble a little.`,
     return () => {
       window.removeEventListener("resize", handleViewportResize);
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener(
-          "resize",
-          handleViewportResize
-        );
+        window.visualViewport.removeEventListener("resize", handleViewportResize);
       }
     };
   }, []);
 
-  // Lock/unlock body scroll
   useEffect(() => {
     if (chatOpen) {
       document.body.classList.add("chatbot-open");
@@ -95,18 +70,13 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
   }, [chatOpen]);
 
-  // Scroll and focus handling on input
   useEffect(() => {
     const handleFocus = () => {
       if (window.innerWidth <= 750) {
         document.documentElement.style.setProperty("--input-focused", "1");
-
         setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-          });
-        }, 400); // delay ensures keyboard animation completes
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 400);
       }
     };
 
@@ -127,12 +97,10 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
   }, []);
 
-  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Hide tooltip after 10s
   useEffect(() => {
     const t = setTimeout(() => setShowTooltip(false), 10000);
     return () => clearTimeout(t);
@@ -146,13 +114,6 @@ I'm in beta, so forgive me if I fumble a little.`,
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    const inputEl = inputRef.current;
-
-    // Save cursor position
-    const cursorPos = inputEl?.selectionStart || 0;
-
-    // Send message but don’t clear input immediately
-
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
@@ -165,15 +126,8 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/chat",
-        payload
-      );
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.content },
-      ]);
+      const { data } = await axios.post("http://localhost:5000/api/chat", payload);
+      setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
       if (data.content.match(/All set,|How can I help/)) {
         localStorage.setItem("profileComplete", "true");
       }
@@ -181,22 +135,14 @@ I'm in beta, so forgive me if I fumble a little.`,
       console.error(err);
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: "Oops! There was an error. Please try again.",
-        },
+        { role: "assistant", content: "Oops! There was an error. Please try again." },
       ]);
     } finally {
       setIsLoading(false);
-
-      // ✅ Clear input WITHOUT causing blur
-      requestAnimationFrame(() => {
+      setInput("");
+      setTimeout(() => {
         inputRef.current?.focus();
-        requestAnimationFrame(() => {
-          setInput(""); // defer setting input to avoid re-render blur
-          inputRef.current?.setSelectionRange(cursorPos, cursorPos);
-        });
-      });
+      }, 150);
     }
   };
 
@@ -209,42 +155,26 @@ I'm in beta, so forgive me if I fumble a little.`,
 
   return (
     <>
-      {/* Floating Icon */}
       {!chatOpen && (
-        <div
-          className="chatbot-icon-container"
-          onClick={() => setChatOpen(true)}
-        >
-          {showTooltip && (
-            <span className="chatbot-tooltip">Ask me anything about alt.f</span>
-          )}
+        <div className="chatbot-icon-container" onClick={() => setChatOpen(true)}>
+          {showTooltip && <span className="chatbot-tooltip">Ask me anything about alt.f</span>}
           <VscRobot className="chatbot-icon-bot" size={48} />
         </div>
       )}
 
-      {/* Chat Window */}
       {chatOpen && (
         <div className="chatbot-wrapper" ref={chatWrapperRef}>
           <header className="chatbot-header">
             <img src={logo} alt="alt.f logo" className="chatbot-header-icon" />
-            <h2 className="chatbot-header-title">
-              Rahi — Realtime alt.f Help Interface
-            </h2>
-            <FaTimes
-              className="chatbot-close-icon"
-              onClick={() => setChatOpen(false)}
-            />
+            <h2 className="chatbot-header-title">Rahi — Realtime alt.f Help Interface</h2>
+            <FaTimes className="chatbot-close-icon" onClick={() => setChatOpen(false)} />
           </header>
 
           <div className="chatbot-messages">
             {messages.map((m, i) => (
               <div key={i} className={`chatbot-message-row chatbot-${m.role}`}>
                 {m.role === "assistant" ? (
-                  <img
-                    src={logo}
-                    alt="bot avatar"
-                    className="chatbot-avatar-icon chatbot-avatar-assistant"
-                  />
+                  <img src={logo} alt="bot avatar" className="chatbot-avatar-icon chatbot-avatar-assistant" />
                 ) : (
                   <LuCircleUser className="chatbot-avatar-icon chatbot-avatar-user" />
                 )}
@@ -253,11 +183,7 @@ I'm in beta, so forgive me if I fumble a little.`,
                     remarkPlugins={[remarkGfm]}
                     components={{
                       a: ({ node, ...props }) => (
-                        <a
-                          {...props}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
+                        <a {...props} target="_blank" rel="noopener noreferrer" />
                       ),
                     }}
                   >
@@ -279,7 +205,6 @@ I'm in beta, so forgive me if I fumble a little.`,
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
@@ -293,7 +218,6 @@ I'm in beta, so forgive me if I fumble a little.`,
               placeholder="Type your message…"
               rows={1}
             />
-
             <button
               className="chatbot-input-button"
               onClick={sendMessage}
@@ -308,7 +232,6 @@ I'm in beta, so forgive me if I fumble a little.`,
   );
 }
 
-// Embed in parent layout
 function DemoLp() {
   const [chatOpen, setChatOpen] = useState(false);
   return <Chatbot chatOpen={chatOpen} setChatOpen={setChatOpen} />;
