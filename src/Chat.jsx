@@ -27,28 +27,22 @@ I'm in beta, so forgive me if I fumble a little.`,
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
   const isAndroid = /Android/.test(navigator.userAgent);
 
-  // Add platform-specific class
+  // Add platform-specific class for styling
   useEffect(() => {
     if (chatOpen && chatWrapperRef.current) {
       if (isIOS) chatWrapperRef.current.classList.add("ios");
       if (isAndroid) chatWrapperRef.current.classList.add("android");
     }
-  }, [chatOpen]);
+  }, [chatOpen, isIOS, isAndroid]);
 
-  // Lock initial height and keyboard handling
+  // Set dynamic viewport height for mobile, handle virtual keyboard
   useEffect(() => {
     const setViewportHeight = () => {
-      // Prefer 100dvh if available (newer CSS units)
-      document.documentElement.style.setProperty(
-        "--chat-height",
-        window.visualViewport
-          ? `${window.visualViewport.height}px`
-          : `${window.innerHeight}px`
-      );
-      document.documentElement.style.setProperty(
-        "--vh",
-        `${window.innerHeight * 0.01}px`
-      );
+      const vh = window.visualViewport
+        ? window.visualViewport.height
+        : window.innerHeight;
+      document.documentElement.style.setProperty("--chat-height", `${vh}px`);
+      document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
     };
 
     setViewportHeight();
@@ -57,7 +51,6 @@ I'm in beta, so forgive me if I fumble a little.`,
       const keyboardHeight =
         window.innerHeight -
         (window.visualViewport?.height || window.innerHeight);
-
       document.documentElement.style.setProperty(
         "--keyboard-height",
         `${Math.max(keyboardHeight, 0)}px`
@@ -73,7 +66,6 @@ I'm in beta, so forgive me if I fumble a little.`,
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
     }
-
     return () => {
       window.removeEventListener("resize", handleViewportResize);
       if (window.visualViewport) {
@@ -85,7 +77,7 @@ I'm in beta, so forgive me if I fumble a little.`,
     };
   }, []);
 
-  // Lock/unlock body scroll
+  // Lock/unlock body scroll on open
   useEffect(() => {
     if (chatOpen) {
       document.body.classList.add("chatbot-open");
@@ -94,7 +86,7 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
   }, [chatOpen]);
 
-  // Scroll and focus handling on input
+  // Input focus/blur for mobile viewport adjust, but no explicit focus on send
   useEffect(() => {
     const handleFocus = () => {
       if (window.innerWidth <= 750) {
@@ -102,7 +94,7 @@ I'm in beta, so forgive me if I fumble a little.`,
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({
             behavior: "smooth",
-            block: "end",
+            block: "end"
           });
         }, 400);
       }
@@ -125,12 +117,12 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
   }, []);
 
-  // Scroll to bottom on new message
+  // Scroll to bottom for new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Hide tooltip after 10s
+  // Tooltip hide after 10s
   useEffect(() => {
     const t = setTimeout(() => setShowTooltip(false), 10000);
     return () => clearTimeout(t);
@@ -140,6 +132,7 @@ I'm in beta, so forgive me if I fumble a little.`,
     axios.defaults.withCredentials = true;
   }, []);
 
+  // --- MAIN SEND HANDLER ---
   const sendMessage = async () => {
     const trimmed = input.trim();
     if (!trimmed) return;
@@ -147,7 +140,6 @@ I'm in beta, so forgive me if I fumble a little.`,
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
-
     setIsLoading(true);
 
     const payload = { message: trimmed };
@@ -157,7 +149,7 @@ I'm in beta, so forgive me if I fumble a little.`,
 
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/chat",
+        "http://localhost:5000/api/chat", // adjust to your API endpoint
         payload
       );
       setMessages((prev) => [
@@ -177,7 +169,7 @@ I'm in beta, so forgive me if I fumble a little.`,
       ]);
     } finally {
       setIsLoading(false);
-      setInput(""); // Input will remain focused as long as the input is still in DOM and not conditionally rendered away
+      setInput(""); // Do not mess with focus, keeps keyboard open if textarea is still mounted
     }
   };
 
@@ -273,12 +265,13 @@ I'm in beta, so forgive me if I fumble a little.`,
               onKeyDown={handleKeyDown}
               placeholder="Type your message…"
               rows={1}
+              autoFocus={chatOpen && window.innerWidth > 750} // Optional: desktop autofocusing
             />
-
             <button
               className="chatbot-input-button"
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
+              type="button" // KEY: avoid accidental form submit/refresh
             >
               Send
             </button>
@@ -289,7 +282,7 @@ I'm in beta, so forgive me if I fumble a little.`,
   );
 }
 
-// Embed in parent layout
+// Demo wrapper for seeing your chatbot in isolation
 function DemoLp() {
   const [chatOpen, setChatOpen] = useState(false);
   return <Chatbot chatOpen={chatOpen} setChatOpen={setChatOpen} />;
