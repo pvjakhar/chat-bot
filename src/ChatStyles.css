@@ -115,7 +115,7 @@
   position: relative;
   flex: 1 1 auto;
   overflow-y: auto;
-  min-height: 0; /* important to allow shrinking */
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: #c1c1c1 transparent;
   background-image: url("./assets/section31.png");
@@ -129,9 +129,9 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0); /* Adjust overlay color & opacity */
+  background-color: rgba(0, 0, 0, 0);
   z-index: 0;
-  pointer-events: none; /* Allows clicks to pass through */
+  pointer-events: none;
 }
 
 /* Ensure content stays above overlay */
@@ -239,18 +239,18 @@
 
 /* override the "no bullets" rule */
 .chatbot-message-bubble ul {
-  list-style: none; /* show solid bullets inside the bubble */
-  margin: 0.5rem 0; /* vertical spacing */
-  padding-left: 1.05rem; /* indent the list */
+  list-style: none;
+  margin: 0.5rem 0;
+  padding-left: 1.05rem;
 }
 
 .chatbot-message-bubble li {
-  margin: 0.25rem 0; /* tighten space between items */
-  line-height: 1.4; /* comfortable line‑height */
+  margin: 0.25rem 0;
+  line-height: 1.4;
 }
 
 .chatbot-message-bubble p {
-  margin: 0 0 0.45rem 0; /* add back some vertical rhythm */
+  margin: 0 0 0.45rem 0;
 }
 
 /* Input area */
@@ -327,42 +327,34 @@
     --chatbot-input-height: 60px;
   }
 
-  /* Fix for header not being fixed */
+  /* Header and Input areas are now pinned with flexbox */
   .chatbot-header {
-    position: sticky !important; /* The new fix */
-    top: 0 !important;
+    flex-shrink: 0; /* Keep header from shrinking */
+    position: relative;
     z-index: 10;
-    padding: max(env(safe-area-inset-top), 0.5rem) 1rem 0.75rem 1rem;
+    padding-top: max(env(safe-area-inset-top), 0.5rem);
     background-color: #2d2e2e;
-    flex-shrink: 0;
     min-height: var(--chatbot-header-height);
     max-height: var(--chatbot-header-height);
   }
 
   .chatbot-messages {
-    flex: 1;
+    flex: 1; /* Allow messages to grow and shrink */
     overflow-y: auto;
-    /* Add padding to account for the sticky header */
-    padding: calc(var(--chatbot-header-height) + 0.5rem) 0.5rem 0.5rem 0.5rem;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
-    max-height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
-    transition: height 0.3s ease, max-height 0.3s ease;
+    padding: 0.5rem;
+    padding-top: 1rem; /* Adjust padding to make space for the top of the chat history */
   }
   
   .chatbot-input-area {
+    flex-shrink: 0; /* Keep input from shrinking */
     position: relative;
-    bottom: 0;
     z-index: 10;
-    padding: 0.75rem;
     padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
     background: #2d2e2e;
-    flex-shrink: 0;
     min-height: var(--chatbot-input-height);
     max-height: var(--chatbot-input-height);
-    transform: none !important;
-    will-change: auto;
   }
 
   .chatbot-input-textarea {
