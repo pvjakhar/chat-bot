@@ -12,7 +12,7 @@ export function Chatbot({ chatOpen, setChatOpen }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Welcome to alt.f. Ask me anything about our workspaces.  
+      content: `Welcome to alt.f. Ask me anything about our workspaces.  
 I'm in beta, so forgive me if I fumble a little.`,
     },
   ]);
@@ -37,15 +37,19 @@ I'm in beta, so forgive me if I fumble a little.`,
 
   // Lock initial height and keyboard handling
   useEffect(() => {
-    const initialHeight = window.innerHeight;
-    document.documentElement.style.setProperty(
-      "--chat-height",
-      `${initialHeight}px`
-    );
-    document.documentElement.style.setProperty(
-      "--vh",
-      `${initialHeight * 0.01}px`
-    );
+    const setViewportHeight = () => {
+      const initialHeight = window.innerHeight;
+      document.documentElement.style.setProperty(
+        "--chat-height",
+        `${initialHeight}px`
+      );
+      document.documentElement.style.setProperty(
+        "--vh",
+        `${initialHeight * 0.01}px`
+      );
+    };
+
+    setViewportHeight(); // Call it initially
 
     const handleViewportResize = () => {
       const keyboardHeight =
@@ -60,13 +64,19 @@ I'm in beta, so forgive me if I fumble a little.`,
         "--keyboard-open",
         keyboardHeight > 150 ? "1" : "0"
       );
+
+      // Update the chat height on resize to account for dynamic address bars
+      setViewportHeight();
     };
 
+    // Use a single listener for both resize and visualViewport resize
+    window.addEventListener("resize", handleViewportResize);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
     }
 
     return () => {
+      window.removeEventListener("resize", handleViewportResize);
       if (window.visualViewport) {
         window.visualViewport.removeEventListener(
           "resize",
@@ -79,14 +89,9 @@ I'm in beta, so forgive me if I fumble a little.`,
   // Lock/unlock body scroll
   useEffect(() => {
     if (chatOpen) {
-      document.body.style.position = "fixed";
-      document.body.style.top = "0";
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.bottom = "0";
-      document.body.style.overflow = "hidden";
+      document.body.classList.add("chatbot-open");
     } else {
-      document.body.style = "";
+      document.body.classList.remove("chatbot-open");
     }
   }, [chatOpen]);
 
