@@ -86,7 +86,6 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 1rem;
-  /* background: linear-gradient(90deg, #e15252 0%, #d74242 100%); */
   background-color: #2d2e2e;
   color: #fff;
   position: relative;
@@ -302,26 +301,32 @@
 /* Enhanced Mobile Responsive styles - STABLE VERSION */
 @media (max-width: 750px) {
   .chatbot-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    /* Use fixed initial height to prevent shifting */
-    height: var(--chat-height, 100vh);
-    max-height: var(--chat-height, 100vh);
-    max-width: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    /* Use the dynamically set height */
+    height: var(--chat-height, 100vh) !important;
+    max-height: var(--chat-height, 100vh) !important;
+    max-width: none !important;
     background: #fff;
-    border-radius: 0;
+    border-radius: 0 !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 1001;
     animation: chatbot-fadeIn 0.3s ease-out;
-    /* CRITICAL: Prevent any movement */
-    transform: translateZ(0);
-    will-change: auto;
+    /* Critical: Lock position and prevent any movement */
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  :root {
+    --chatbot-header-height: 60px;
+    --chatbot-input-height: 60px;
   }
 
   .chatbot-header {
@@ -331,9 +336,9 @@
     padding: max(env(safe-area-inset-top), 0.5rem) 1rem 0.75rem 1rem;
     background-color: #2d2e2e;
     flex-shrink: 0;
-    /* Fixed height to prevent shifting */
-    min-height: 60px;
-    max-height: 60px;
+    /* Ensure the header has a fixed height */
+    min-height: var(--chatbot-header-height);
+    max-height: var(--chatbot-header-height);
   }
 
   .chatbot-messages {
@@ -342,16 +347,12 @@
     padding: 0.5rem;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    /* Adjust height when keyboard is open instead of moving the whole chat */
-    height: calc(
-      100% - 120px - (var(--keyboard-height, 0px) * var(--keyboard-open, 0))
-    );
-    max-height: calc(
-      100% - 120px - (var(--keyboard-height, 0px) * var(--keyboard-open, 0))
-    );
+    /* Calculate height dynamically */
+    height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
+    max-height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
     transition: height 0.3s ease, max-height 0.3s ease;
   }
-
+  
   .chatbot-input-area {
     position: relative;
     bottom: 0;
@@ -359,12 +360,11 @@
     padding: 0.75rem;
     padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
     background: #2d2e2e;
-    height: auto;
-    min-height: 60px;
-    max-height: 60px;
     flex-shrink: 0;
-    /* Keep input area stable - don't move it */
-    transform: translateZ(0);
+    /* Ensure the input area also has a fixed height */
+    min-height: var(--chatbot-input-height);
+    max-height: var(--chatbot-input-height);
+    transform: none !important;
     will-change: auto;
   }
 
@@ -374,7 +374,6 @@
     padding: 8px 12px;
     font-size: 16px; /* Prevents zoom on iOS */
     border: 1px solid #444;
-    /* Prevent any weird behavior */
     -webkit-appearance: none;
     appearance: none;
     resize: none;
@@ -387,100 +386,17 @@
     padding: 0 1.25rem;
     flex-shrink: 0;
   }
-
-  /* iOS specific - prevent any movement */
-  .chatbot-wrapper.ios {
-    /* Lock the height completely */
-    height: var(--chat-height, 100vh) !important;
-    max-height: var(--chat-height, 100vh) !important;
-    /* Prevent bounce scroll */
-    overscroll-behavior: none;
-    /* Prevent any transforms */
-    transform: none !important;
-  }
-
-  /* Android specific - prevent any movement */
-  .chatbot-wrapper.android {
-    /* Lock the height completely */
-    height: var(--chat-height, 100vh) !important;
-    max-height: var(--chat-height, 100vh) !important;
-    /* Prevent any transforms */
-    transform: none !important;
-  }
-
-  /* Prevent body scroll and movement when chat is open */
-  body:has(.chatbot-wrapper) {
+  
+  /* Critical: Prevent body scroll and movement when chat is open */
+  body.chatbot-open {
     overflow: hidden !important;
     position: fixed !important;
     width: 100% !important;
     height: 100% !important;
-    /* Prevent any movement of the body */
-    top: 0 !important;
-    left: 0 !important;
-  }
-
-  /* Remove all previous transform-based approaches */
-  .chatbot-wrapper,
-  .chatbot-wrapper * {
-    /* Disable any transforms that might cause movement */
-    transform: none !important;
-  }
-
-  /* Override any previous positioning that might cause shifts */
-  .chatbot-input-area {
-    position: relative !important;
-    transform: none !important;
-    margin-bottom: 0 !important;
-  }
-}
-
-/* Additional fixes to prevent ANY movement */
-@media (max-width: 750px) {
-  /* Prevent zoom on double tap */
-  .chatbot-wrapper * {
-    touch-action: manipulation;
-  }
-
-  /* Ensure proper scrolling only in messages area */
-  .chatbot-messages {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    /* Prevent rubber band scrolling */
-    overscroll-behavior-y: contain;
-    /* Make sure messages area handles all scrolling */
-    position: relative;
-  }
-
-  /* Better button accessibility on mobile */
-  .chatbot-input-button {
-    min-width: 60px;
-    touch-action: manipulation;
-  }
-
-  /* Critical: Prevent any viewport changes from affecting layout */
-  .chatbot-input-textarea:focus {
-    /* Don't let focus change anything */
-    outline: none;
-    border-color: #e15252;
-    /* Prevent any layout changes */
-    transform: none !important;
-    margin: 0 !important;
-    padding: 8px 12px !important;
-  }
-
-  /* Absolutely prevent the chat window from moving */
-  .chatbot-wrapper {
-    /* Lock position completely */
-    position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    /* Prevent any CSS that might cause movement */
-    margin: 0 !important;
-    padding: 0 !important;
-    transform: none !important;
-    transition: none !important;
   }
 }
 
