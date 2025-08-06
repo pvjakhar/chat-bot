@@ -3,7 +3,7 @@ import axios from "axios";
 import "./ChatStyles.css";
 import logo from "./assets/section31.png";
 import ReactMarkdown from "react-markdown";
-import { LuCircleUser  } from "react-icons/lu";
+import { LuCircleUser } from "react-icons/lu";
 import { FaTimes } from "react-icons/fa";
 import { VscRobot } from "react-icons/vsc";
 import remarkGfm from "remark-gfm";
@@ -38,18 +38,20 @@ I'm in beta, so forgive me if I fumble a little.`,
   // Lock initial height and keyboard handling
   useEffect(() => {
     const setViewportHeight = () => {
-      const initialHeight = window.innerHeight;
+      // Prefer 100dvh if available (newer CSS units)
       document.documentElement.style.setProperty(
         "--chat-height",
-        `${initialHeight}px`
+        window.visualViewport
+          ? `${window.visualViewport.height}px`
+          : `${window.innerHeight}px`
       );
       document.documentElement.style.setProperty(
         "--vh",
-        `${initialHeight * 0.01}px`
+        `${window.innerHeight * 0.01}px`
       );
     };
 
-    setViewportHeight(); // Call it initially
+    setViewportHeight();
 
     const handleViewportResize = () => {
       const keyboardHeight =
@@ -64,12 +66,9 @@ I'm in beta, so forgive me if I fumble a little.`,
         "--keyboard-open",
         keyboardHeight > 150 ? "1" : "0"
       );
-
-      // Update the chat height on resize to account for dynamic address bars
       setViewportHeight();
     };
 
-    // Use a single listener for both resize and visualViewport resize
     window.addEventListener("resize", handleViewportResize);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
@@ -100,13 +99,12 @@ I'm in beta, so forgive me if I fumble a little.`,
     const handleFocus = () => {
       if (window.innerWidth <= 750) {
         document.documentElement.style.setProperty("--input-focused", "1");
-
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({
             behavior: "smooth",
             block: "end",
           });
-        }, 400); // delay ensures keyboard animation completes
+        }, 400);
       }
     };
 
@@ -146,12 +144,6 @@ I'm in beta, so forgive me if I fumble a little.`,
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    const inputEl = inputRef.current;
-
-    // Save cursor position
-    const cursorPos = inputEl?.selectionStart || 0;
-
-    // Send message but don’t clear input immediately
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
@@ -168,7 +160,6 @@ I'm in beta, so forgive me if I fumble a little.`,
         "http://localhost:5000/api/chat",
         payload
       );
-
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.content },
@@ -177,7 +168,6 @@ I'm in beta, so forgive me if I fumble a little.`,
         localStorage.setItem("profileComplete", "true");
       }
     } catch (err) {
-      console.error(err);
       setMessages((prev) => [
         ...prev,
         {
@@ -187,15 +177,7 @@ I'm in beta, so forgive me if I fumble a little.`,
       ]);
     } finally {
       setIsLoading(false);
-
-      // Clear input WITHOUT causing blur
-      requestAnimationFrame(() => {
-        inputRef.current?.focus(); // Keep focus on the input
-        requestAnimationFrame(() => {
-          setInput(""); // Clear input
-          inputRef.current?.setSelectionRange(cursorPos, cursorPos); // Restore cursor position
-        });
-      });
+      setInput(""); // Input will remain focused as long as the input is still in DOM and not conditionally rendered away
     }
   };
 
@@ -245,7 +227,7 @@ I'm in beta, so forgive me if I fumble a little.`,
                     className="chatbot-avatar-icon chatbot-avatar-assistant"
                   />
                 ) : (
-                  <LuCircleUser  className="chatbot-avatar-icon chatbot-avatar-user" />
+                  <LuCircleUser className="chatbot-avatar-icon chatbot-avatar-user" />
                 )}
                 <div className="chatbot-message-bubble">
                   <ReactMarkdown
