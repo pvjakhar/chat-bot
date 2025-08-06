@@ -100,6 +100,7 @@
   flex: 1;
   font-size: 1rem;
   font-weight: 500;
+  margin: 0; /* Remove default h2 margin */
 }
 .chatbot-close-icon {
   font-size: 18px;
@@ -117,6 +118,7 @@
   background-position: center;
   background-size: cover;
   padding: 1rem;
+  margin: 0; /* Remove any default margins */
 }
 .chatbot-messages::before {
   content: "";
@@ -233,6 +235,7 @@
   background: #2d2e2e;
   height: 60px;
   flex-shrink: 0;
+  margin: 0; /* Remove any default margins */
 }
 .chatbot-input-textarea {
   flex: 1;
@@ -246,6 +249,7 @@
   padding-top: 5px;
   padding-left: 8px;
   border: 1px solid transparent;
+  margin: 0; /* Remove any default margins */
 }
 .chatbot-input-textarea:focus {
   border-color: #e15252;
@@ -311,12 +315,18 @@
     flex-shrink: 0;
     min-height: var(--chatbot-header-height);
     max-height: var(--chatbot-header-height);
+    margin: 0; /* Remove any default margins */
+  }
+
+  .chatbot-header-title {
+    margin: 0; /* Ensure no margin on mobile */
   }
 
   .chatbot-messages {
     flex: 1;
     overflow-y: auto;
     padding: 0.5rem;
+    margin: 0; /* Remove any default margins */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
@@ -329,13 +339,15 @@
     bottom: 0;
     z-index: 10;
     padding: 0.75rem;
-    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    /* Remove safe-area-inset-bottom to eliminate extra white space */
+    padding-bottom: 0.75rem;
     background: #2d2e2e;
     flex-shrink: 0;
     min-height: var(--chatbot-input-height);
     max-height: var(--chatbot-input-height);
     transform: none !important;
     will-change: auto;
+    margin: 0; /* Remove any default margins */
   }
 
   .chatbot-input-textarea {
@@ -348,6 +360,7 @@
     appearance: none;
     resize: none;
     overflow: hidden;
+    margin: 0; /* Remove any default margins */
   }
 
   .chatbot-input-button {
@@ -355,6 +368,10 @@
     max-height: 40px;
     padding: 0 1.25rem;
     flex-shrink: 0;
+    margin-left: 0.5rem; /* Keep only the left margin for spacing from textarea */
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: 0;
   }
 
   /* Prevent body from scrolling when chat is open */
@@ -367,6 +384,13 @@
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Additional reset for potential spacing issues */
+  .chatbot-wrapper * {
+    box-sizing: border-box;
   }
 }
 
