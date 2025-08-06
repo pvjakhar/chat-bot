@@ -12,7 +12,7 @@ export function Chatbot({ chatOpen, setChatOpen }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Welcome to alt.f. Ask me anything about our workspaces. 
+      content: `Welcome to alt.f. Ask me anything about our workspaces.  
 I'm in beta, so forgive me if I fumble a little.`,
     },
   ]);
@@ -49,7 +49,7 @@ I'm in beta, so forgive me if I fumble a little.`,
       );
     };
 
-    setViewportHeight();
+    setViewportHeight(); // Call it initially
 
     const handleViewportResize = () => {
       const keyboardHeight =
@@ -64,9 +64,12 @@ I'm in beta, so forgive me if I fumble a little.`,
         "--keyboard-open",
         keyboardHeight > 150 ? "1" : "0"
       );
+
+      // Update the chat height on resize to account for dynamic address bars
       setViewportHeight();
     };
 
+    // Use a single listener for both resize and visualViewport resize
     window.addEventListener("resize", handleViewportResize);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
@@ -97,12 +100,13 @@ I'm in beta, so forgive me if I fumble a little.`,
     const handleFocus = () => {
       if (window.innerWidth <= 750) {
         document.documentElement.style.setProperty("--input-focused", "1");
+
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({
             behavior: "smooth",
             block: "end",
           });
-        }, 400);
+        }, 400); // delay ensures keyboard animation completes
       }
     };
 
@@ -142,12 +146,16 @@ I'm in beta, so forgive me if I fumble a little.`,
     const trimmed = input.trim();
     if (!trimmed) return;
 
+    const inputEl = inputRef.current;
+
+    // Save cursor position
+    const cursorPos = inputEl?.selectionStart || 0;
+
+    // Send message but don’t clear input immediately
+
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
-
-    const tempInput = input;
-    setInput("");
 
     setIsLoading(true);
 
@@ -180,10 +188,15 @@ I'm in beta, so forgive me if I fumble a little.`,
       ]);
     } finally {
       setIsLoading(false);
-      const currentInput = inputRef.current;
-      if (currentInput) {
-        currentInput.focus();
-      }
+
+      // ✅ Clear input WITHOUT causing blur
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        requestAnimationFrame(() => {
+          setInput(""); // defer setting input to avoid re-render blur
+          inputRef.current?.setSelectionRange(cursorPos, cursorPos);
+        });
+      });
     }
   };
 
