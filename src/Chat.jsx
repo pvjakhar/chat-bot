@@ -148,11 +148,6 @@ I'm in beta, so forgive me if I fumble a little.`,
 
     const inputEl = inputRef.current;
 
-    // Save cursor position
-    const cursorPos = inputEl?.selectionStart || 0;
-
-    // Send message but don’t clear input immediately
-
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
@@ -189,14 +184,12 @@ I'm in beta, so forgive me if I fumble a little.`,
     } finally {
       setIsLoading(false);
 
-      // ✅ Clear input WITHOUT causing blur
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-        requestAnimationFrame(() => {
-          setInput(""); // defer setting input to avoid re-render blur
-          inputRef.current?.setSelectionRange(cursorPos, cursorPos);
-        });
-      });
+      // ✅ FIX: Clear input and refocus synchronously to prevent keyboard flicker
+      const currentInput = inputRef.current;
+      if (currentInput) {
+        currentInput.focus();
+        setInput("");
+      }
     }
   };
 
