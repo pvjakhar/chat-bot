@@ -146,9 +146,8 @@ I'm in beta, so forgive me if I fumble a little.`,
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
 
-    // Temporarily save the input value to prevent state from clearing too early
     const tempInput = input;
-    setInput(""); // Clear input immediately, but don't cause blur
+    setInput("");
 
     setIsLoading(true);
 
@@ -181,14 +180,10 @@ I'm in beta, so forgive me if I fumble a little.`,
       ]);
     } finally {
       setIsLoading(false);
-      
-      // FIX: Ensure the input field remains focused after clearing
-      requestAnimationFrame(() => {
-        const currentInput = inputRef.current;
-        if (currentInput) {
-          currentInput.focus();
-        }
-      });
+      const currentInput = inputRef.current;
+      if (currentInput) {
+        currentInput.focus();
+      }
     }
   };
 
