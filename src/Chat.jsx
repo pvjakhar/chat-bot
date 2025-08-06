@@ -12,7 +12,7 @@ export function Chatbot({ chatOpen, setChatOpen }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Welcome to alt.f. Ask me anything about our workspaces.  
+      content: `Welcome to alt.f. Ask me anything about our workspaces. 
 I'm in beta, so forgive me if I fumble a little.`,
     },
   ]);
@@ -49,7 +49,7 @@ I'm in beta, so forgive me if I fumble a little.`,
       );
     };
 
-    setViewportHeight(); // Call it initially
+    setViewportHeight();
 
     const handleViewportResize = () => {
       const keyboardHeight =
@@ -64,12 +64,9 @@ I'm in beta, so forgive me if I fumble a little.`,
         "--keyboard-open",
         keyboardHeight > 150 ? "1" : "0"
       );
-
-      // Update the chat height on resize to account for dynamic address bars
       setViewportHeight();
     };
 
-    // Use a single listener for both resize and visualViewport resize
     window.addEventListener("resize", handleViewportResize);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
@@ -100,13 +97,12 @@ I'm in beta, so forgive me if I fumble a little.`,
     const handleFocus = () => {
       if (window.innerWidth <= 750) {
         document.documentElement.style.setProperty("--input-focused", "1");
-
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({
             behavior: "smooth",
             block: "end",
           });
-        }, 400); // delay ensures keyboard animation completes
+        }, 400);
       }
     };
 
@@ -146,11 +142,13 @@ I'm in beta, so forgive me if I fumble a little.`,
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    const inputEl = inputRef.current;
-
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
+
+    // Temporarily save the input value to prevent state from clearing too early
+    const tempInput = input;
+    setInput(""); // Clear input immediately, but don't cause blur
 
     setIsLoading(true);
 
@@ -183,13 +181,14 @@ I'm in beta, so forgive me if I fumble a little.`,
       ]);
     } finally {
       setIsLoading(false);
-
-      // ✅ FIX: Clear input and refocus synchronously to prevent keyboard flicker
-      const currentInput = inputRef.current;
-      if (currentInput) {
-        currentInput.focus();
-        setInput("");
-      }
+      
+      // FIX: Ensure the input field remains focused after clearing
+      requestAnimationFrame(() => {
+        const currentInput = inputRef.current;
+        if (currentInput) {
+          currentInput.focus();
+        }
+      });
     }
   };
 
