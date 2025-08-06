@@ -3,7 +3,7 @@ import axios from "axios";
 import "./ChatStyles.css";
 import logo from "./assets/section31.png";
 import ReactMarkdown from "react-markdown";
-import { LuCircleUser } from "react-icons/lu";
+import { LuCircleUser  } from "react-icons/lu";
 import { FaTimes } from "react-icons/fa";
 import { VscRobot } from "react-icons/vsc";
 import remarkGfm from "remark-gfm";
@@ -49,7 +49,7 @@ I'm in beta, so forgive me if I fumble a little.`,
       );
     };
 
-    setViewportHeight();
+    setViewportHeight(); // Call it initially
 
     const handleViewportResize = () => {
       const keyboardHeight =
@@ -65,9 +65,11 @@ I'm in beta, so forgive me if I fumble a little.`,
         keyboardHeight > 150 ? "1" : "0"
       );
 
+      // Update the chat height on resize to account for dynamic address bars
       setViewportHeight();
     };
 
+    // Use a single listener for both resize and visualViewport resize
     window.addEventListener("resize", handleViewportResize);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
@@ -93,6 +95,38 @@ I'm in beta, so forgive me if I fumble a little.`,
     }
   }, [chatOpen]);
 
+  // Scroll and focus handling on input
+  useEffect(() => {
+    const handleFocus = () => {
+      if (window.innerWidth <= 750) {
+        document.documentElement.style.setProperty("--input-focused", "1");
+
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }, 400); // delay ensures keyboard animation completes
+      }
+    };
+
+    const handleBlur = () => {
+      document.documentElement.style.setProperty("--input-focused", "0");
+      document.documentElement.style.setProperty("--keyboard-open", "0");
+      document.documentElement.style.setProperty("--keyboard-height", "0px");
+    };
+
+    const inputEl = inputRef.current;
+    if (inputEl) {
+      inputEl.addEventListener("focus", handleFocus);
+      inputEl.addEventListener("blur", handleBlur);
+      return () => {
+        inputEl.removeEventListener("focus", handleFocus);
+        inputEl.removeEventListener("blur", handleBlur);
+      };
+    }
+  }, []);
+
   // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -110,11 +144,14 @@ I'm in beta, so forgive me if I fumble a little.`,
 
   const sendMessage = async () => {
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed) return;
 
-    // Clear input immediately to prevent keyboard flicker
-    setInput("");
+    const inputEl = inputRef.current;
 
+    // Save cursor position
+    const cursorPos = inputEl?.selectionStart || 0;
+
+    // Send message but don’t clear input immediately
     startTransition(() => {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     });
@@ -150,8 +187,15 @@ I'm in beta, so forgive me if I fumble a little.`,
       ]);
     } finally {
       setIsLoading(false);
-      // Keep focus on input without causing blur/refocus
-      inputRef.current?.focus();
+
+      // Clear input WITHOUT causing blur
+      requestAnimationFrame(() => {
+        inputRef.current?.focus(); // Keep focus on the input
+        requestAnimationFrame(() => {
+          setInput(""); // Clear input
+          inputRef.current?.setSelectionRange(cursorPos, cursorPos); // Restore cursor position
+        });
+      });
     }
   };
 
@@ -201,7 +245,7 @@ I'm in beta, so forgive me if I fumble a little.`,
                     className="chatbot-avatar-icon chatbot-avatar-assistant"
                   />
                 ) : (
-                  <LuCircleUser className="chatbot-avatar-icon chatbot-avatar-user" />
+                  <LuCircleUser  className="chatbot-avatar-icon chatbot-avatar-user" />
                 )}
                 <div className="chatbot-message-bubble">
                   <ReactMarkdown
