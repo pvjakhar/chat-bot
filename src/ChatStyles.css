@@ -1,4 +1,4 @@
-/* ─── Chat-toggle icons (bottom right) ─── */
+/* ─── Chat‑toggle icons (bottom right) ─── */
 .chatbot-icon-container {
   position: fixed;
   bottom: 20px;
@@ -115,7 +115,7 @@
   position: relative;
   flex: 1 1 auto;
   overflow-y: auto;
-  min-height: 0;
+  min-height: 0; /* important to allow shrinking */
   scrollbar-width: thin;
   scrollbar-color: #c1c1c1 transparent;
   background-image: url("./assets/section31.png");
@@ -129,9 +129,9 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0); /* Adjust overlay color & opacity */
   z-index: 0;
-  pointer-events: none;
+  pointer-events: none; /* Allows clicks to pass through */
 }
 
 /* Ensure content stays above overlay */
@@ -239,18 +239,18 @@
 
 /* override the "no bullets" rule */
 .chatbot-message-bubble ul {
-  list-style: none;
-  margin: 0.5rem 0;
-  padding-left: 1.05rem;
+  list-style: none; /* show solid bullets inside the bubble */
+  margin: 0.5rem 0; /* vertical spacing */
+  padding-left: 1.05rem; /* indent the list */
 }
 
 .chatbot-message-bubble li {
-  margin: 0.25rem 0;
-  line-height: 1.4;
+  margin: 0.25rem 0; /* tighten space between items */
+  line-height: 1.4; /* comfortable line‑height */
 }
 
 .chatbot-message-bubble p {
-  margin: 0 0 0.45rem 0;
+  margin: 0 0 0.45rem 0; /* add back some vertical rhythm */
 }
 
 /* Input area */
@@ -298,71 +298,96 @@
   cursor: not-allowed;
 }
 
-/* Mobile-specific styles for the chatbot container */
+/* Enhanced Mobile Responsive styles - STABLE VERSION */
 @media (max-width: 750px) {
   .chatbot-wrapper {
-    height: 100vh !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    max-width: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    /* Use the dynamically set height */
+    height: var(--chat-height, 100vh) !important;
+    max-height: var(--chat-height, 100vh) !important;
+    max-width: none !important;
     background: #fff;
-    border-radius: 0;
+    border-radius: 0 !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 1001;
     animation: chatbot-fadeIn 0.3s ease-out;
-    transform: none;
-    margin: 0;
-    padding: 0;
+    /* Critical: Lock position and prevent any movement */
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  :root {
+    --chatbot-header-height: 60px;
+    --chatbot-input-height: 60px;
   }
 
   .chatbot-header {
-    flex-shrink: 0;
+    position: relative;
+    top: 0;
     z-index: 10;
+    padding: max(env(safe-area-inset-top), 0.5rem) 1rem 0.75rem 1rem;
     background-color: #2d2e2e;
-    padding-top: max(env(safe-area-inset-top), 0.5rem);
-  }
-
-  .chatbot-input-area {
     flex-shrink: 0;
-    z-index: 10;
-    background-color: #2d2e2e;
-    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    /* Ensure the header has a fixed height */
+    min-height: var(--chatbot-header-height);
+    max-height: var(--chatbot-header-height);
   }
 
   .chatbot-messages {
-    flex-grow: 1;
-    flex-shrink: 1;
+    flex: 1;
     overflow-y: auto;
+    padding: 0.5rem;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding: 1rem;
+    /* Calculate height dynamically */
+    height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
+    max-height: calc(100% - var(--chatbot-header-height) - var(--chatbot-input-height));
+    transition: height 0.3s ease, max-height 0.3s ease;
+  }
+  
+  .chatbot-input-area {
     position: relative;
-    z-index: 1;
-    height: auto;
+    bottom: 0;
+    z-index: 10;
+    padding: 0.75rem;
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    background: #2d2e2e;
+    flex-shrink: 0;
+    /* Ensure the input area also has a fixed height */
+    min-height: var(--chatbot-input-height);
+    max-height: var(--chatbot-input-height);
+    transform: none !important;
+    will-change: auto;
   }
 
   .chatbot-input-textarea {
-    font-size: 16px;
+    min-height: 40px;
+    max-height: 40px;
+    padding: 8px 12px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border: 1px solid #444;
     -webkit-appearance: none;
     appearance: none;
-    padding: 8px 12px;
-    height: 40px;
-    max-height: 40px;
     resize: none;
-    border: 1px solid #444;
+    overflow: hidden;
   }
 
   .chatbot-input-button {
-    height: 40px;
+    min-height: 40px;
     max-height: 40px;
+    padding: 0 1.25rem;
+    flex-shrink: 0;
   }
   
+  /* Critical: Prevent body scroll and movement when chat is open */
   body.chatbot-open {
     overflow: hidden !important;
     position: fixed !important;
